@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .confirmation-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 2em;
+            margin-right: 10px;
+        }
+        .order-summary {
+            background-color: white;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .order-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+        .order-summary li {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-summary li:last-child {
+            border-bottom: none;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .email-confirmation {
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-container">
+        <h2><span class="success-icon">✅</span> Thank you for your purchase!</h2>
+        <p>Your payment was successful.</p>
+
+        <div class="order-summary">
+            <h3>Order Summary:</h3>
+            <ul>
+                <li><strong>Product:</strong> {{ jersey_name }}</li>
+                <li><strong>Total Paid:</strong> ${{ "%.2f"|format(amount/100) }}</li>
+                <li><strong>Shipping:</strong> {{ shipping_method }}</li>
+                <li><strong>Shipping to:</strong> {{ shipping_address }}</li>
+            </ul>
+        </div>
+
+        <p class="email-confirmation">A confirmation has been sent to <strong>{{ email }}</strong></p>
+
+        <a href="/" class="btn">Return to Home</a>
+    </div>
+</body>
+</html> 

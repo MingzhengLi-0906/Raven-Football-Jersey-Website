@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "name": "Haocheng Wang",
+        "image": "static/images/jersey_1_05XydTaQtTpzJYn58NfuFyx-11.webp",
+        "price": 6000.0,
+        "seller": "bob wang ",
+        "seller_rating": 1.6,
+        "description": "hello",
+        "date_added": "2025-05-16",
+        "details": "hello",
+        "priority": 1
+    }
+]

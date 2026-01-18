@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Information</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .checkout-form {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .saved-addresses {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .address-option {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .address-option:hover {
+            background-color: #e9ecef;
+        }
+        .shipping-options {
+            margin-top: 20px;
+            display: none;
+        }
+        .shipping-option {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .shipping-option:hover {
+            background-color: #e9ecef;
+        }
+        .shipping-option.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        .order-summary {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        #payment-element {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .payment-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .pay-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+        .pay-button:hover {
+            background-color: #45a049;
+        }
+        .cancel-button {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+        .cancel-button:hover {
+            background-color: #da190b;
+        }
+        #submit-button, #payment-button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-form">
+        <h2>Checkout Information</h2>
+
+        {% if jersey %}
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <p><strong>{{ jersey.name }}</strong></p>
+            <p>Price: $<span id="base-price">{{ "%.2f"|format(jersey.price) }}</span></p>
+            <p id="shipping-cost" style="display: none;">Shipping: $<span id="shipping-amount">0.00</span></p>
+            <p id="total-price" style="display: none;">Total: $<span id="total-amount">{{ "%.2f"|format(jersey.price) }}</span></p>
+        </div>
+
+        <input type="hidden" id="base-price-value" value="{{ jersey.price }}">
+        {% endif %}
+        
+        {% if saved_addresses %}
+        <div class="saved-addresses">
+            <h3>Saved Addresses</h3>
+            {% for address in saved_addresses %}
+            <div class="address-option" data-address='{{ address|tojson|safe }}' onclick="selectSavedAddress(this)">
+                <strong>{{ address.name }}</strong><br>
+                {{ address.street }}<br>
+                {{ address.city }}, {{ address.state }} {{ address.zip }}<br>
+                {{ address.country }}<br>
+                {{ address.email }}<br>
+                {{ address.phone }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form id="checkout-form">
+            <input type="hidden" id="jersey-id" name="jersey_id" value="{{ jersey.id if jersey else '' }}">
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone" required 
+                       pattern="[0-9\+\-\(\)\s]+" 
+                       title="Please enter a valid phone number"
+                       placeholder="e.g., +1 (555) 123-4567">
+            </div>
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="street">Street Address:</label>
+                <input type="text" id="street" name="street" required>
+            </div>
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State/Province:</label>
+                <input type="text" id="state" name="state" required 
+                       placeholder="e.g., CA, NY">
+            </div>
+            <div class="form-group">
+                <label for="zip">ZIP/Postal Code:</label>
+                <input type="text" id="zip" name="zip" required 
+                       pattern="[0-9\-]+"
+                       title="Please enter a valid postal code"
+                       placeholder="e.g., 12345">
+            </div>
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <select id="country" name="country" required>
+                    <option value="">Select a country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                </select>
+            </div>
+
+            <!-- Address form submit button -->
+            <div class="button-group">
+                <button type="button" class="cancel-button" onclick="window.location.href='/jersey/{{ jersey.id }}'">Cancel</button>
+                <button type="button" id="submit-button" class="pay-button" onclick="calculateShipping()">Calculate Shipping</button>
+            </div>
+
+            <div id="shipping-options" class="shipping-options">
+                <h3>Select Shipping Method</h3>
+                <!-- Shipping options will be populated here -->
+            </div>
+
+            <div id="payment-section" class="payment-section">
+                <h3>Payment Method</h3>
+                <div id="payment-element"></div>
+                <div class="payment-notice" style="margin: 15px 0; padding: 10px; background-color: #e8f5e9; border-radius: 4px; color: #2e7d32;">
+                    <p style="margin: 0;">✓ Once you've finished entering your payment information, click "Complete Payment" to finalize your purchase.</p>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="cancel-button" onclick="window.location.href='/jersey/{{ jersey.id }}'">Cancel</button>
+                    <button type="button" id="payment-button" class="pay-button" onclick="processPayment()">Complete Payment</button>
+                </div>
+                <span id="loading" class="loading" style="display: none;">Processing...</span>
+            </div>
+
+            <div id="error-message" class="error"></div>
+        </form>
+    </div>
+
+    <script>
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+        const form = document.getElementById('checkout-form');
+        const submitButton = document.getElementById('submit-button');
+        const paymentButton = document.getElementById('payment-button');
+        const errorMessage = document.getElementById('error-message');
+        const shippingOptionsDiv = document.getElementById('shipping-options');
+        const paymentSection = document.getElementById('payment-section');
+        const loadingSpan = document.getElementById('loading');
+        const basePriceValue = document.getElementById('base-price-value')?.value || 0;
+        const shippingCostElement = document.getElementById('shipping-cost');
+        const shippingAmountElement = document.getElementById('shipping-amount');
+        const totalPriceElement = document.getElementById('total-price');
+        const totalAmountElement = document.getElementById('total-amount');
+        
+        let elements;
+        let paymentElement;
+        let selectedShippingRate = null;
+
+        function selectSavedAddress(element) {
+            const address = JSON.parse(element.dataset.address);
+            document.getElementById('email').value = address.email;
+            document.getElementById('phone').value = address.phone;
+            document.getElementById('name').value = address.name;
+            document.getElementById('street').value = address.street;
+            document.getElementById('city').value = address.city;
+            document.getElementById('state').value = address.state;
+            document.getElementById('zip').value = address.zip;
+            document.getElementById('country').value = address.country;
+        }
+
+        function updateTotalAmount(shippingCost) {
+            const basePrice = parseFloat(basePriceValue);
+            const total = basePrice + shippingCost;
+            
+            shippingAmountElement.textContent = shippingCost.toFixed(2);
+            totalAmountElement.textContent = total.toFixed(2);
+            
+            shippingCostElement.style.display = 'block';
+            totalPriceElement.style.display = 'block';
+            
+            paymentButton.textContent = `Complete Payment ($${total.toFixed(2)})`;
+        }
+
+        function selectShippingOption(optionId, rateData) {
+            const options = document.querySelectorAll('.shipping-option');
+            options.forEach(option => option.classList.remove('selected'));
+            document.getElementById(optionId).classList.add('selected');
+            
+            selectedShippingRate = typeof rateData === 'string' ? JSON.parse(rateData) : rateData;
+            updateTotalAmount(parseFloat(selectedShippingRate.rate));
+            
+            // Store form data and shipping rate
+            storeFormData();
+            
+            // Show payment section
+            paymentSection.style.display = 'block';
+            
+            // Initialize payment form
+            initializePaymentForm();
+
+            // Update button text
+            paymentButton.textContent = `Complete Payment ($${(parseFloat(basePriceValue) + parseFloat(selectedShippingRate.rate)).toFixed(2)})`;
+
+            // Redisplay shipping options to show selection
+            const storedRates = sessionStorage.getItem('shippingRates');
+            if (storedRates) {
+                displayShippingOptions(JSON.parse(storedRates), selectedShippingRate.id);
+            }
+
+            // Scroll to payment section
+            paymentSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function initializePaymentForm() {
+            try {
+                const formData = new FormData(form);
+                const formDataObject = {};
+                formData.forEach((value, key) => {
+                    formDataObject[key] = value;
+                });
+
+                // Ensure jersey_id is included
+                const jerseyId = document.getElementById('jersey-id').value;
+                if (!jerseyId) {
+                    throw new Error('Jersey ID is missing');
+                }
+                formDataObject.jersey_id = jerseyId;
+                formDataObject.shipping_rate = selectedShippingRate;
+
+                console.log('Initializing payment form with:', formDataObject);
+
+                const response = await fetch('/create-payment-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formDataObject)
+                });
+
+                const data = await response.json();
+                console.log('Payment session created:', data);
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Clean up existing elements if they exist
+                if (elements) {
+                    elements = null;
+                }
+                if (paymentElement) {
+                    paymentElement.destroy();
+                    paymentElement = null;
+                }
+
+                // Initialize Stripe Elements
+                elements = stripe.elements({
+                    clientSecret: data.client_secret,
+                    appearance: {
+                        theme: 'stripe'
+                    }
+                });
+
+                // Create and mount the Payment Element
+                paymentElement = elements.create('payment', {
+                    layout: {
+                        type: 'tabs',
+                        defaultCollapsed: false
+                    },
+                    paymentMethodOrder: ['card', 'wechat_pay', 'alipay'],
+                    payment_method_types: ['card', 'wechat_pay', 'alipay']
+                });
+                paymentElement.mount('#payment-element');
+
+                // Update submit button text with total amount
+                const totalAmount = (data.amount / 100).toFixed(2);
+                paymentButton.textContent = `Complete Payment ($${totalAmount})`;
+
+            } catch (error) {
+                console.error('Payment form initialization error:', error);
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Function to store form data in session storage
+        function storeFormData() {
+            const formData = new FormData(form);
+            const formDataObj = {};
+            formData.forEach((value, key) => {
+                formDataObj[key] = value;
+            });
+            sessionStorage.setItem('checkoutFormData', JSON.stringify(formDataObj));
+            if (selectedShippingRate) {
+                sessionStorage.setItem('selectedShippingRate', JSON.stringify(selectedShippingRate));
+            }
+        }
+
+        // Function to restore form data from session storage
+        async function restoreFormData() {
+            const storedData = sessionStorage.getItem('checkoutFormData');
+            const storedShippingRate = sessionStorage.getItem('selectedShippingRate');
+            
+            if (storedData) {
+                const formDataObj = JSON.parse(storedData);
+                Object.keys(formDataObj).forEach(key => {
+                    const input = form.elements[key];
+                    if (input) {
+                        input.value = formDataObj[key];
+                    }
+                });
+
+                // If we have shipping rate, restore shipping section
+                if (storedShippingRate) {
+                    selectedShippingRate = JSON.parse(storedShippingRate);
+                    await calculateShipping(true); // true means we're restoring data
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // Modified calculateShipping function
+        async function calculateShipping(isRestoring = false) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Calculating...';
+            loadingSpan.style.display = 'inline-block';
+            errorMessage.textContent = '';
+
+            try {
+                if (!isRestoring) {
+                    // Only make the API call if we're not restoring data
+                    const formData = new FormData(form);
+                    const formDataObject = {};
+                    formData.forEach((value, key) => {
+                        formDataObject[key] = value;
+                    });
+
+                    const response = await fetch('/calculate-shipping', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formDataObject)
+                    });
+
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    // Store shipping rates in session storage
+                    sessionStorage.setItem('shippingRates', JSON.stringify(data.rates));
+                    displayShippingOptions(data.rates);
+                }
+
+                if (isRestoring && selectedShippingRate) {
+                    // If restoring, get rates from session storage or make a new API call
+                    const storedRates = sessionStorage.getItem('shippingRates');
+                    if (storedRates) {
+                        displayShippingOptions(JSON.parse(storedRates), selectedShippingRate.id);
+                    } else {
+                        // If no stored rates, make a new API call
+                        await calculateShipping(false);
+                    }
+                    
+                    // Show and update payment section
+                    shippingOptionsDiv.style.display = 'block';
+                    updateTotalAmount(parseFloat(selectedShippingRate.rate));
+                    paymentSection.style.display = 'block';
+                    await initializePaymentForm();
+                }
+
+                submitButton.textContent = 'Recalculate Shipping';
+                submitButton.disabled = false;
+
+            } catch (error) {
+                console.error('Shipping calculation error:', error);
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Calculate Shipping';
+            } finally {
+                loadingSpan.style.display = 'none';
+            }
+        }
+
+        // New function to display shipping options
+        function displayShippingOptions(rates, selectedRateId = null) {
+            shippingOptionsDiv.style.display = 'block';
+            shippingOptionsDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Select Shipping Method</h3>
+                    <button type="button" onclick="calculateShipping(false)" 
+                            style="padding: 5px 10px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Refresh Options
+                    </button>
+                </div>
+                ${rates.map(rate => `
+                    <div class="shipping-option ${selectedRateId === rate.id ? 'selected' : ''}" 
+                         id="rate-${rate.id}" 
+                         onclick="selectShippingOption('rate-${rate.id}', ${JSON.stringify(rate).replace(/"/g, '&quot;')})">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${rate.carrier} ${rate.service}</strong>
+                                <br>
+                                Estimated delivery: ${rate.delivery_days} days
+                            </div>
+                            <div style="font-size: 1.2em; font-weight: bold;">
+                                $${rate.rate.toFixed(2)}
+                            </div>
+                        </div>
+                        ${selectedRateId === rate.id ? '<div style="color: #2196f3; margin-top: 5px;">✓ Currently Selected</div>' : ''}
+                    </div>
+                `).join('')}`;
+        }
+
+        async function processPayment() {
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Processing Payment...';
+            loadingSpan.style.display = 'inline-block';
+            errorMessage.textContent = '';
+
+            try {
+                if (!elements) {
+                    throw new Error('Payment form not initialized');
+                }
+
+                // Submit the Elements form first
+                const { error: submitError } = await elements.submit();
+                if (submitError) {
+                    throw submitError;
+                }
+
+                // Store the current URL before payment to handle Alipay return
+                const returnUrl = window.location.href;
+                sessionStorage.setItem('paymentReturnUrl', returnUrl);
+
+                // Confirm the payment
+                const result = await stripe.confirmPayment({
+                    elements,
+                    confirmParams: {
+                        return_url: window.location.origin + '/payment-complete',
+                        payment_method_data: {
+                            billing_details: {
+                                address: {
+                                    country: document.getElementById('country').value
+                                }
+                            }
+                        }
+                    },
+                    redirect: 'always'
+                });
+
+                // This code won't execute as we're always redirecting
+                if (result.error) {
+                    console.log('Payment error:', result.error);
+                    errorMessage.textContent = result.error.message || 'An error occurred during payment. Please try again.';
+                    errorMessage.style.display = 'block';
+                    
+                    // Reset the payment form state
+                    paymentButton.disabled = false;
+                    paymentButton.textContent = `Complete Payment ($${(parseFloat(basePriceValue) + parseFloat(selectedShippingRate.rate)).toFixed(2)})`;
+                    loadingSpan.style.display = 'none';
+                    
+                    // Keep the payment section visible
+                    paymentSection.style.display = 'block';
+                    paymentSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Reinitialize the payment form
+                    await initializePaymentForm();
+                } else if (result.paymentIntent) {
+                    switch (result.paymentIntent.status) {
+                        case 'succeeded':
+                            window.location.href = window.location.origin + '/payment-complete';
+                            break;
+                        case 'requires_payment_method':
+                        case 'requires_action':
+                        case 'requires_confirmation':
+                        case 'processing':
+                        case 'requires_capture':
+                            // Payment needs additional actions or failed
+                            errorMessage.textContent = 'Payment was not completed. Please try again.';
+                            errorMessage.style.display = 'block';
+                            paymentButton.disabled = false;
+                            paymentButton.textContent = `Complete Payment ($${(parseFloat(basePriceValue) + parseFloat(selectedShippingRate.rate)).toFixed(2)})`;
+                            loadingSpan.style.display = 'none';
+                            paymentSection.style.display = 'block';
+                            paymentSection.scrollIntoView({ behavior: 'smooth' });
+                            await initializePaymentForm();
+                            break;
+                        default:
+                            // For any other status, stay on the page
+                            errorMessage.textContent = 'Payment status unclear. Please try again or contact support.';
+                            errorMessage.style.display = 'block';
+                            paymentButton.disabled = false;
+                            paymentButton.textContent = `Complete Payment ($${(parseFloat(basePriceValue) + parseFloat(selectedShippingRate.rate)).toFixed(2)})`;
+                            loadingSpan.style.display = 'none';
+                            paymentSection.style.display = 'block';
+                            paymentSection.scrollIntoView({ behavior: 'smooth' });
+                            await initializePaymentForm();
+                    }
+                }
+
+            } catch (error) {
+                console.log('Payment error:', error);
+                errorMessage.textContent = error.message || 'An error occurred during payment. Please try again.';
+                errorMessage.style.display = 'block';
+                paymentButton.disabled = false;
+                paymentButton.textContent = `Complete Payment ($${(parseFloat(basePriceValue) + parseFloat(selectedShippingRate.rate)).toFixed(2)})`;
+                loadingSpan.style.display = 'none';
+
+                // Keep the payment section visible
+                paymentSection.style.display = 'block';
+                paymentSection.scrollIntoView({ behavior: 'smooth' });
+                await initializePaymentForm();
+            }
+        }
+
+        // Check for stored data on page load
+        window.addEventListener('load', async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentIntentClientSecret = urlParams.get('payment_intent_client_secret');
+            const paymentIntentId = urlParams.get('payment_intent');
+            
+            if (paymentIntentClientSecret && paymentIntentId) {
+                // We're returning from a payment attempt
+                stripe.retrievePaymentIntent(paymentIntentClientSecret).then(function(result) {
+                    if (result.error) {
+                        errorMessage.textContent = result.error.message;
+                        errorMessage.style.display = 'block';
+                    } else {
+                        const paymentIntent = result.paymentIntent;
+                        if (paymentIntent.status === 'succeeded') {
+                            window.location.href = window.location.origin + '/payment-complete';
+                        } else {
+                            // Payment failed, restore the form
+                            restoreFormData();
+                        }
+                    }
+                });
+            } else {
+                // Check if we're coming from a jersey detail page (new purchase)
+                const referrer = document.referrer;
+                if (referrer.includes('/jersey/')) {
+                    // Clear any stored data for new purchase
+                    sessionStorage.removeItem('checkoutFormData');
+                    sessionStorage.removeItem('selectedShippingRate');
+                    sessionStorage.removeItem('shippingRates');
+                } else {
+                    // Check if we have stored form data (e.g., page refresh)
+                    const hasStoredData = await restoreFormData();
+                    if (hasStoredData) {
+                        // Scroll to payment section if we restored data
+                        paymentSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            }
+        });
+
+        // Clear stored data when leaving the page normally
+        window.addEventListener('beforeunload', function(e) {
+            if (!e.currentTarget.performance.navigation.type === 1) { // Not a refresh
+                sessionStorage.removeItem('checkoutFormData');
+                sessionStorage.removeItem('selectedShippingRate');
+                sessionStorage.removeItem('shippingRates');
+            }
+        });
+
+        // Remove the form submit event listener since we're using onclick handlers
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent form submission
+        });
+    </script>
+</body>
+</html> 

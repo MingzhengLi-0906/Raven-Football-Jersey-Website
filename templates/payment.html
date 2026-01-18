@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Page</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .payment-form {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        select, button {
+            padding: 8px;
+            font-size: 16px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .pay-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .pay-button:hover {
+            background-color: #45a049;
+        }
+        .pay-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .cancel-button {
+            background-color: #f44336;
+            color: white;
+        }
+        .cancel-button:hover {
+            background-color: #da190b;
+        }
+        #payment-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        #card-element {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-form">
+        <h2>Payment Details</h2>
+        
+        {% if jersey %}
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <p><strong>{{ jersey.name }}</strong></p>
+            <p>Price: ${{ "%.2f"|format(jersey.price) }}</p>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="payment-method">Select Payment Method:</label>
+            <select id="payment-method">
+                <option value="card">Credit/Debit Card</option>
+                <option value="alipay">Alipay</option>
+                <option value="wechat_pay">WeChat Pay</option>
+            </select>
+        </div>
+
+        <div id="card-element-container" class="form-group">
+            <!-- Card Element will be inserted here -->
+            <div id="card-element"></div>
+        </div>
+
+        <div class="button-group">
+            <button id="cancel-payment" class="cancel-button" type="button" onclick="window.location.href='/jersey/{{ jersey.id }}'">Cancel</button>
+            <button id="submit-payment" class="pay-button">Complete Payment</button>
+        </div>
+        <div id="payment-message"></div>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+        let elements;
+        let paymentElement;
+
+        // DOM elements
+        const paymentMethodSelect = document.getElementById('payment-method');
+        const submitButton = document.getElementById('submit-payment');
+        const messageDiv = document.getElementById('payment-message');
+        const cardElementContainer = document.getElementById('card-element-container');
+
+        // Handle payment method selection
+        paymentMethodSelect.addEventListener('change', function(e) {
+            if (e.target.value === 'card') {
+                cardElementContainer.style.display = 'block';
+                if (!elements) {
+                    elements = stripe.elements();
+                    paymentElement = elements.create('card');
+                    paymentElement.mount('#card-element');
+                }
+            } else {
+                cardElementContainer.style.display = 'none';
+                if (paymentElement) {
+                    paymentElement.unmount();
+                    elements = null;
+                }
+            }
+        });
+
+        // Handle form submission
+        submitButton.addEventListener('click', async function(e) {
+            e.preventDefault();
+            submitButton.disabled = true;
+            messageDiv.textContent = 'Processing payment...';
+            
+            const paymentMethod = paymentMethodSelect.value;
+            
+            try {
+                // Create payment intent
+                const response = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: 1000, // $10.00
+                        payment_method: paymentMethod
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Handle different payment methods
+                let result;
+                if (paymentMethod === 'card') {
+                    result = await stripe.confirmCardPayment(data.clientSecret, {
+                        payment_method: {
+                            card: paymentElement,
+                        }
+                    });
+                } else if (paymentMethod === 'alipay') {
+                    result = await stripe.confirmAlipayPayment(data.clientSecret, {
+                        return_url: window.location.origin + '/payment-complete'
+                    });
+                } else if (paymentMethod === 'wechat_pay') {
+                    result = await stripe.confirmWechatPayPayment(data.clientSecret, {
+                        payment_method_options: {
+                            wechat_pay: {
+                                client: 'web'
+                            }
+                        }
+                    });
+                }
+
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+
+                // Payment successful
+                messageDiv.className = 'success';
+                messageDiv.textContent = 'Payment successful!';
+                
+            } catch (error) {
+                messageDiv.className = 'error';
+                messageDiv.textContent = error.message;
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        // Initialize card element on page load
+        window.addEventListener('load', function() {
+            elements = stripe.elements();
+            paymentElement = elements.create('card');
+            paymentElement.mount('#card-element');
+        });
+    </script>
+</body>
+</html> 

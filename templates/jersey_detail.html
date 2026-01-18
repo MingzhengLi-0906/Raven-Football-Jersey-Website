@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ jersey.name }} - Raven Football Jerseys</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #59964F;    /* Medium green */
+            --secondary-color: #2D471D;   /* Dark green */
+            --accent-color: #D1DCC6;      /* Light sage */
+            --dark-color: #000000;        /* Black */
+            --light-color: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--dark-color);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+            max-width: 100%;
+            margin: 0 2rem;
+        }
+
+        h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        nav {
+            margin-right: 0;
+            margin-left: auto;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        nav a:hover {
+            color: var(--accent-color);
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        nav a.active {
+            background-color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .jersey-detail {
+            margin-top: 100px;
+            padding: 3rem 0;
+            background-color: white;
+            flex: 1;
+        }
+
+        .breadcrumbs {
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--secondary-color);
+        }
+
+        .jersey-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .jersey-image-large {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(45, 71, 29, 0.1);
+        }
+
+        .jersey-image-large img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .jersey-info-detailed {
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(45, 71, 29, 0.1);
+        }
+
+        .jersey-info-detailed h2 {
+            color: var(--secondary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .price-large {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .seller-info {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .stars {
+            color: #ffd700;
+            margin: 0 0.5rem;
+        }
+
+        .jersey-description, .jersey-details {
+            margin-bottom: 2rem;
+        }
+
+        .jersey-description h3, .jersey-details h3 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .jersey-added {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .buy-button {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--dark-color) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--dark-color) 0%, var(--secondary-color) 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn:not(.btn-primary) {
+            background-color: rgba(89, 150, 79, 0.7);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:not(.btn-primary):hover {
+            background-color: rgba(89, 150, 79, 0.9);
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background-color: var(--secondary-color);
+            color: var(--accent-color);
+            padding: 0.8rem 0;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+            max-width: 100%;
+            margin: 0 2rem;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            margin-left: auto;
+            font-size: 0.9rem;
+            padding-right: 0;
+        }
+
+        footer a:hover {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .jersey-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Raven Football Jerseys</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/sell" class="active">Buy Jerseys</a></li>
+                    <li><a href="/auction">Auctions</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="jersey-detail">
+        <div class="container">
+            <div class="breadcrumbs">
+                <a href="/sell">All Jerseys</a> &gt; {{ jersey.name }}
+            </div>
+            
+            <div class="jersey-content">
+                <div class="jersey-image-large">
+                    <img src="{{ jersey.image }}" alt="{{ jersey.name }}">
+                </div>
+                
+                <div class="jersey-info-detailed">
+                    <h2>{{ jersey.name }}</h2>
+                    <p class="price-large">${{ "%.2f"|format(jersey.price) }}</p>
+                    
+                    <div class="seller-info">
+                        <p>Sold by: <strong>{{ jersey.seller }}</strong></p>
+                        <p class="seller-rating">
+                            Rating: 
+                            <span class="stars">
+                                {% for i in range(5) %}
+                                    {% if i < jersey.seller_rating|int %}
+                                        ★
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            {{ jersey.seller_rating }}/5
+                        </p>
+                    </div>
+                    
+                    <div class="jersey-description">
+                        <h3>Description</h3>
+                        <p>{{ jersey.description }}</p>
+                    </div>
+                    
+                    <div class="jersey-details">
+                        <h3>Details</h3>
+                        <p>{{ jersey.details }}</p>
+                    </div>
+                    
+                    <div class="jersey-added">
+                        <p>Added on: {{ jersey.date_added }}</p>
+                    </div>
+                    
+                    <div class="buy-button">
+                        <a href="{{ url_for('checkout_info', jersey_id=jersey.id) }}" class="btn btn-primary">Buy Now</a>
+                        {% if session.get('logged_in') %}
+                        <a href="{{ url_for('manage') }}" class="btn">Manage Jerseys</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Raven Football Jerseys. All rights reserved.</p>
+            {% if session.get('logged_in') %}
+            <a href="/manage">Admin</a>
+            {% else %}
+            <a href="/login">Admin Login</a>
+            {% endif %}
+        </div>
+    </footer>
+</body>
+</html> 

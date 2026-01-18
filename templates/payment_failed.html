@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Failed</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .error-message {
+            color: #dc3545;
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            background-color: #f8d7da;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .retry-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        .home-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment Failed</h1>
+        <div class="error-message">
+            {{ error_message }}
+        </div>
+        <div>
+            <a href="{{ return_url }}" class="button retry-button">Try Again</a>
+            <a href="{{ url_for('index') }}" class="button home-button">Return to Home</a>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Jerseys - Raven Football Jerseys</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #59964F;    /* Medium green */
+            --secondary-color: #2D471D;   /* Dark green */
+            --accent-color: #D1DCC6;      /* Light sage */
+            --dark-color: #000000;        /* Black */
+            --light-color: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--dark-color);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+            max-width: 100%;
+            margin: 0 2rem;
+        }
+
+        h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        nav {
+            margin-right: 0;
+            margin-left: auto;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        nav a:hover {
+            color: var(--accent-color);
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        nav a.active {
+            background-color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .shop-controls {
+            margin-top: 100px;
+            padding: 2rem 0;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .shop-controls .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .search-bar {
+            flex: 1;
+        }
+
+        .search-bar form {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            padding: 0.8rem 1.5rem;
+            background: var(--dark-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sort-options select {
+            padding: 0.8rem;
+            border: 2px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: white;
+        }
+
+        .jersey-grid {
+            padding: 3rem 0;
+            background-color: white;
+            flex: 1;
+        }
+
+        .jerseys {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .jersey-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: 0 5px 15px rgba(45, 71, 29, 0.1);
+        }
+
+        .jersey-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(45, 71, 29, 0.15);
+        }
+
+        .jersey-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .jersey-image {
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .jersey-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .jersey-info {
+            padding: 1.5rem;
+        }
+
+        .jersey-info h3 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .price {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .seller {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating {
+            color: #ffd700;
+        }
+
+        .description {
+            color: #4a4a4a;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        footer {
+            background-color: var(--secondary-color);
+            color: var(--accent-color);
+            padding: 0.8rem 0;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+            max-width: 100%;
+            margin: 0 2rem;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            margin-left: auto;
+            font-size: 0.9rem;
+            padding-right: 0;
+        }
+
+        footer a:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Raven Football Jerseys</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/sell" class="active">Buy Jerseys</a></li>
+                    <li><a href="/auction">Auctions</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="shop-controls">
+        <div class="container">
+            <div class="search-bar">
+                <form action="/sell" method="get" id="search-form">
+                    <input type="text" name="search" placeholder="Search jerseys..." value="{{ search }}">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+            <div class="sort-options">
+                <label for="sort">Sort by:</label>
+                <select name="sort" id="sort-select">
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Newest First</option>
+                    <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="seller" {% if sort_by == 'seller' %}selected{% endif %}>Top Rated Sellers</option>
+                    <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>Featured Items</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="jersey-grid">
+        <div class="container">
+            {% if jerseys %}
+                <div class="jerseys">
+                    {% for jersey in jerseys %}
+                        <div class="jersey-card">
+                            <a href="/jersey/{{ jersey.id }}">
+                                <div class="jersey-image">
+                                    <img src="{{ jersey.image }}" alt="{{ jersey.name }}">
+                                </div>
+                                <div class="jersey-info">
+                                    <h3>{{ jersey.name }}</h3>
+                                    <p class="price">${{ "%.2f"|format(jersey.price) }}</p>
+                                    <p class="seller">Seller: {{ jersey.seller }} 
+                                        <span class="rating">
+                                            {% for i in range(5) %}
+                                                {% if i < jersey.seller_rating|int %}
+                                                    ★
+                                                {% else %}
+                                                    ☆
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                    </p>
+                                    <p class="description">{{ jersey.description }}</p>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-results">
+                    <p>No jerseys found matching your search criteria.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Raven Football Jerseys. All rights reserved.</p>
+            {% if session.get('logged_in') %}
+            <a href="/manage">Admin</a>
+            {% else %}
+            <a href="/login">Admin Login</a>
+            {% endif %}
+        </div>
+    </footer>
+</body>
+</html> 
